@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:aop="http://www.springframework.org/schema/aop"
+    xmlns:tx="http://www.springframework.org/schema/tx"
+    xmlns:context="http://www.springframework.org/schema/context" xsi:schemaLocation="
+        http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+	http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx.xsd
+        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+	http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd">
+
+	<!-- 加载连接池的配置文件 -->
+	<context:property-placeholder location="classpath:c3P0.properties"/>
+	
+	<!-- 配置dataSource -->
+	<bean name="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<property name="checkoutTimeout" value="${checkoutTimeout}"></property>
+		<property name="initialPoolSize" value="${initialPoolSize}"></property>
+		<property name="user" value="${user}"></property>
+		<property name="password" value="${password}"></property>
+		<property name="jdbcUrl" value="${jdbcUrl}"></property>
+		<property name="driverClass" value="${driverClass}"></property>
+	</bean>
+	
+	<!--配置sessionFactory  -->
+	<bean name="sessionFactory" class="org.springframework.orm.hibernate5.LocalSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="hibernateProperties">
+			<props>
+				<prop key="hibernate.hbm2ddl.auto">update</prop>
+				<prop key="hibernate.show_sql">true</prop>
+				<prop key="hibernate.format_sql">true</prop>
+				<prop key="hibernate.dialect">org.hibernate.dialect.MySQLDialect</prop>
+			</props>
+		</property>
+		<property name="mappingDirectoryLocations" value="classpath:com/lyn/domain"></property>
+	</bean>
+	
+	<bean name="codeAction" class="com.lyn.web.action.CodeAction" scope="prototype"></bean>
+	
+	
+	<!-- 配置user模块 -->
+	<bean name="userAction" class="com.lyn.web.action.UserAction" scope="prototype">
+		<property name="service" ref="userService"></property>
+	</bean>
+	<bean name="userService" class="com.lyn.service.impl.UserServiceImpl">
+		<property name="dao" ref="userDao"></property>
+	</bean>
+	<bean name="userDao" class="com.lyn.dao.impl.UserDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 配置customer模块 -->
+	<bean name="customerAction" class="com.lyn.web.action.CustomerAction" scope="prototype">
+		<property name="service" ref="customerService"></property>
+	</bean>
+	<bean name="customerService" class="com.lyn.service.impl.CustomerServiceImpl">
+		<property name="dao" ref="customerDao"></property>
+	</bean>
+	<bean name="customerDao" class="com.lyn.dao.impl.CustomerDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 配置baseDict模块 -->
+	<bean name="baseDictAction" class="com.lyn.web.action.BaseDictAction" scope="prototype">
+		<property name="service" ref="baseDictService"></property>
+	</bean>
+	<bean name="baseDictService" class="com.lyn.service.impl.BaseDictServiceImpl">
+		<property name="dao" ref="baseDictDao"></property>
+	</bean>
+	<bean name="baseDictDao" class="com.lyn.dao.impl.BaseDictDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 配置linkMan模块 -->
+	<bean name="linkManAction" class="com.lyn.web.action.LinkManAction" scope="prototype">
+		<property name="service" ref="linkManService"></property>
+	</bean>
+	<bean name="linkManService" class="com.lyn.service.impl.LinkManServiceImpl">
+		<property name="dao" ref="linkManDao"></property>
+	</bean>
+	<bean name="linkManDao" class="com.lyn.dao.impl.LinkManDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	<!-- 配置saleVisit模块 -->
+	<bean name="saleVisitAction" class="com.lyn.web.action.SaleVisitAction" scope="prototype">
+		<property name="service" ref="saleVisitService"></property>
+	</bean>
+	<bean name="saleVisitService" class="com.lyn.service.impl.SaleVisitServiceImpl">
+		<property name="dao" ref="saleVisitDao"></property>
+	</bean>
+	<bean name="saleVisitDao" class="com.lyn.dao.impl.SaleVisitDaoImpl">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	
+	
+	
+	
+	
+	<!-- 配置事务管理员 -->
+	<bean name="transactionManager" class="org.springframework.orm.hibernate5.HibernateTransactionManager">
+		<property name="sessionFactory" ref="sessionFactory"></property>
+	</bean>
+	
+	<!--配置事务通知  -->
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="save*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false"/>
+			<tx:method name="update*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false"/>
+			<tx:method name="delete*" isolation="REPEATABLE_READ" propagation="REQUIRED" read-only="false"/>
+		</tx:attributes>
+	</tx:advice>
+	
+	<!-- 将事务通知织入到切入点 -->
+	<aop:config>
+		<aop:pointcut expression="execution(* com.lyn.service.impl.*ServiceImpl.*(..))" id="txPointcut"/>
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut"/>
+	</aop:config>
+	
+</beans>

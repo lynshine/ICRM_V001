@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE struts PUBLIC
+	"-//Apache Software Foundation//DTD Struts Configuration 2.3//EN"
+	"http://struts.apache.org/dtds/struts-2.3.dtd">
+<struts>
+	<constant name="struts.ui.theme" value="simple"></constant>
+	<package name="base" extends="json-default" namespace="/">
+		<!-- 拦截器 -->
+		<interceptors>
+			<!-- 注册拦截器 -->
+			<interceptor name="loginInterceptor" class="com.lyn.web.interceptor.LoginInterceptor"></interceptor>
+			<interceptor-stack name="myInterceptor">
+				<interceptor-ref name="loginInterceptor">
+					<param name="excludeMethods"></param>
+				</interceptor-ref>
+				<interceptor-ref name="defaultStack"></interceptor-ref>
+			</interceptor-stack>
+		</interceptors>
+		<default-interceptor-ref name="myInterceptor"></default-interceptor-ref>
+		<global-results>
+			<result name="to_login" type="dispatcher">/login.jsp</result>
+		</global-results>
+	
+	</package>
+	<package name="user" extends="struts-default" namespace="/">
+		<action name="user_*" class="userAction" method="{1}">
+			<result name="registSuccess" type="redirect">/login.jsp</result>
+			<result name="loginFailed" type="dispatcher">/login.jsp</result>
+			<result name="loginSuccess" type="redirect">/index.jsp</result>
+		</action>
+		<action name="code" class="codeAction" method="createCode"></action>
+	</package>
+	
+	<package name="customer" extends="base" namespace="/">
+	
+		
+		<action name="customer_*" class="customerAction" method="{1}">
+			<result name="saveSuccess" type="redirectAction">customer_findByPage</result>
+			<result name="saveFailed" type="dispatcher">/jsp/customer/add.jsp</result>
+			<result name="findSuccess" type="dispatcher">/jsp/customer/list.jsp</result>
+			<result name="to_add" type="dispatcher">/jsp/customer/add.jsp</result>
+			<result name="find_user_success" type="json">
+				<param name="root">list</param>
+			</result>
+			<result name="delete_success" type="redirectAction">customer_findByPage</result>
+			<result name="to_edit" type="dispatcher">/jsp/customer/edit.jsp</result>
+			<result name="update_success" type="redirectAction">customer_findByPage</result>
+			<result name="find_customer_success" type="json">
+				<param name="root">custList</param>
+			</result>
+		</action>
+		
+	</package>
+	
+	<package name="baseDict" extends="json-default" namespace="/">
+		<action name="baseDict_*" class="baseDictAction" method="{1}">
+			<result name="jsonSuccess" type="json">
+				<param name="root">list</param>
+			</result>
+		</action>
+	</package>
+	
+	<package name="linkMan" extends="base" namespace="/">
+		
+		<action name="linkMan_*" class="linkManAction" method="{1}">
+			<result name="to_add" type="dispatcher">/jsp/linkman/add.jsp</result>
+			<result name="saveSuccess" type="redirectAction">linkMan_findByPage</result>
+			<result name="findSuccess" type="dispatcher">/jsp/linkman/list.jsp</result>
+			<result name="find_linkMan_success" type="json">
+				<param name="root">linkManlist</param>
+			</result>
+			<result name="delete_success" type="redirectAction">linkMan_findByPage</result>
+			<result name="to_edit" type="dispatcher">/jsp/linkman/edit.jsp</result>
+			<result name="update_success" type="redirectAction">linkMan_findByPage</result>
+			
+		</action>
+	</package>
+	
+	<package name="saleVisit" extends="base" namespace="/">
+		
+		<action name="saleVisit_*" class="saleVisitAction" method="{1}">
+			<result name="to_add" type="dispatcher">/jsp/visit/add.jsp</result>
+			<result name="findSuccess" type="dispatcher">/jsp/visit/list.jsp</result>
+			<result name="saveSuccess" type="redirectAction">saleVisit_findByPage</result>
+			
+		</action>
+	</package>
+	
+</struts>
